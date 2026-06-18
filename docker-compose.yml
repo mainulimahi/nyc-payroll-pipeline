@@ -18,6 +18,8 @@ x-airflow-common: &airflow-common
     - ./plugins:/opt/airflow/plugins
     - ./src:/opt/airflow/src
     - ./data:/opt/airflow/data
+    - ../tfl-transport-pipeline/dags:/opt/airflow/dags/tfl #for tfl-pipeline, not useful for nyc-payroll-pipeline, you can remove this line if you don't need it
+    - ../tfl-transport-pipeline/tfl:/opt/airflow/tfl #for tfl-pipeline, not useful for nyc-payroll-pipeline, you can remove this line if you don't need it
   depends_on:
     postgres:
       condition: service_healthy
