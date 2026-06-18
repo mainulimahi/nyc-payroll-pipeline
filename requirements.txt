@@ -1,0 +1,12 @@
+# ── Distributed Processing ────────────────────────────────
+pyspark==3.5.4
+findspark==2.0.1
+
+# ── Data Manipulation ─────────────────────────────────────
+pandas==2.2.3
+
+# ── API & HTTP ────────────────────────────────────────────
+requests==2.32.3
+
+# ── Database Connectivity ─────────────────────────────────
+psycopg2-binary==2.9.10

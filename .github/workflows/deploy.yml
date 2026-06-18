@@ -1,0 +1,82 @@
+name: Deploy to Production Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_SSH_PORT }}
+          script: |
+            cd ${{ secrets.SERVER_APP_PATH }}
+            git pull origin main
+
+            # Only rebuild if Dockerfile or requirements.txt changed
+            if git diff HEAD~1 --name-only | grep -qE "Dockerfile|requirements.txt"; then
+              echo "Rebuilding image..."
+              docker compose build --no-cache
+            else
+              echo "No rebuild needed..."
+            fi
+
+            # Start only new/changed services, keep existing ones running
+            docker compose up -d --no-recreate
+
+            # Force recreate only Airflow services
+            docker compose up -d --force-recreate --no-deps airflow-webserver airflow-scheduler
+
+            # Wait for webserver to become healthy (max 120 seconds)
+            echo "Waiting for Airflow webserver to be healthy..."
+            for i in $(seq 1 24); do
+              STATUS=$(docker compose ps airflow-webserver --format json | python3 -c "import sys,json; data=sys.stdin.read(); print(json.loads(data)['Health'] if data.strip() else 'starting')" 2>/dev/null || echo "starting")
+              echo "Attempt $i: $STATUS"
+              if [ "$STATUS" = "healthy" ]; then
+                echo "Airflow webserver is healthy!"
+                break
+              fi
+              if [ "$i" = "24" ]; then
+                echo "ERROR: Airflow webserver did not become healthy in time"
+                docker compose logs airflow-webserver --tail=20
+                exit 1
+              fi
+              sleep 5
+            done
+
+            docker compose ps
+
+      - name: Send failure email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.ALERT_EMAIL_USER }}
+          password: ${{ secrets.ALERT_EMAIL_PASSWORD }}
+          subject: "❌ GitHub Actions Deploy Failed - nyc-payroll-pipeline"
+          to: ${{ secrets.ALERT_EMAIL_USER }}
+          from: ${{ secrets.ALERT_EMAIL_USER }}
+          body: |
+            🚨 Deployment to production server FAILED!
+
+            Repository: nyc-payroll-pipeline
+            Branch: main
+            Triggered by: ${{ github.actor }}
+            Commit: ${{ github.sha }}
+            Message: ${{ github.event.head_commit.message }}
+
+            Check the Actions log for details:
+            https://github.com/${{ github.repository }}/actions
