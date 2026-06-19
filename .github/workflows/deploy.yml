@@ -32,10 +32,12 @@ jobs:
               echo "No rebuild needed..."
             fi
 
-            # Start only new/changed services, keep existing ones running
+            # Start NEW services only (ClickHouse, Superset, Grafana)
+            # without touching already running containers
             docker compose up -d --no-recreate
 
-            # Force recreate only Airflow services
+            # Only recreate Airflow services to pick up new DAGs/config
+            # --no-deps ensures Postgres, ClickHouse, Superset stay untouched
             docker compose up -d --force-recreate --no-deps airflow-webserver airflow-scheduler
 
             # Wait for webserver to become healthy (max 120 seconds)
@@ -44,7 +46,7 @@ jobs:
               STATUS=$(docker compose ps airflow-webserver --format json | python3 -c "import sys,json; data=sys.stdin.read(); print(json.loads(data)['Health'] if data.strip() else 'starting')" 2>/dev/null || echo "starting")
               echo "Attempt $i: $STATUS"
               if [ "$STATUS" = "healthy" ]; then
-                echo "Airflow webserver is healthy!"
+                echo "Airflow webserver is healthy ✅"
                 break
               fi
               if [ "$i" = "24" ]; then
