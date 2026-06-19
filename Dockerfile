@@ -13,4 +13,5 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 USER airflow
 
 COPY requirements.txt /tmp/requirements.txt
-RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt
+RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt && \
+    python -m pip install --no-cache-dir clickhouse-connect==0.8.0
