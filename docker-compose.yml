@@ -19,8 +19,8 @@ x-airflow-common: &airflow-common
     - ./plugins:/opt/airflow/plugins
     - ./src:/opt/airflow/src
     - ./data:/opt/airflow/data
-    - ../tfl-transport-pipeline/dags:/opt/airflow/dags/tfl
-    - ../tfl-transport-pipeline/tfl:/opt/airflow/tfl
+    - ../tfl-pipeline/dags:/opt/airflow/dags/tfl
+    - ../tfl-pipeline/tfl:/opt/airflow/tfl
   depends_on:
     postgres:
       condition: service_healthy
