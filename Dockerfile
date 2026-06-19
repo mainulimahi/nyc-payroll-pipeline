@@ -2,7 +2,6 @@ FROM apache/airflow:2.10.5-python3.11
 
 USER root
 
-# Java required for PySpark
 RUN apt-get update && \
     apt-get install -y --no-install-recommends default-jdk && \
     apt-get clean && \
@@ -14,4 +13,4 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 USER airflow
 
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt
