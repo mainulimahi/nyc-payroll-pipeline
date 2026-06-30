@@ -8,4 +8,6 @@ RUN SQLA_VERSION=$(/app/.venv/bin/python -c "import sqlalchemy; print(sqlalchemy
     uv pip install --python /app/.venv/bin/python --no-cache clickhouse-connect && \
     uv pip install --python /app/.venv/bin/python --no-cache "sqlalchemy==${SQLA_VERSION}"
 
+COPY superset_config.py /app/pythonpath/superset_config.py
+
 USER superset
