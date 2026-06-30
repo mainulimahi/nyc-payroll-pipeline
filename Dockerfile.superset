@@ -1,0 +1,11 @@
+FROM apache/superset:latest
+
+USER root
+
+# Install clickhouse-connect (provides the 'clickhousedb://' SQLAlchemy dialect)
+# then pin SQLAlchemy back to Superset's required version to avoid breaking it.
+RUN SQLA_VERSION=$(/app/.venv/bin/python -c "import sqlalchemy; print(sqlalchemy.__version__)") && \
+    uv pip install --python /app/.venv/bin/python --no-cache clickhouse-connect && \
+    uv pip install --python /app/.venv/bin/python --no-cache "sqlalchemy==${SQLA_VERSION}"
+
+USER superset

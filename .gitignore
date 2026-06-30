@@ -3,23 +3,21 @@
 venv/
 env/
 images/
-
 # Airflow runtime
 logs/
 plugins/
-
 # Python
 __pycache__/
 *.pyc
 *.pyo
-
 # Data files (generated/downloaded, not source code)
 data/
-
 # IDE
 .vscode/
 .idea/
-
 # OS
 .DS_Store
 Thumbs.db
+# Mounted from separate tfl-pipeline repo (not part of this repo)
+dags/tfl_pipeline.py
+tfl/

@@ -26,7 +26,6 @@ x-airflow-common: &airflow-common
       condition: service_healthy
   networks:
     - pipeline-net
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -46,7 +45,6 @@ services:
     networks:
       - pipeline-net
     restart: unless-stopped
-
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
@@ -63,7 +61,6 @@ services:
           --role Admin \
           --email admin@example.com || true
     restart: "no"
-
   airflow-webserver:
     <<: *airflow-common
     command: webserver
@@ -75,12 +72,10 @@ services:
       timeout: 10s
       retries: 5
     restart: unless-stopped
-
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
     restart: unless-stopped
-
   grafana:
     image: grafana/grafana:latest
     ports:
@@ -95,7 +90,6 @@ services:
     networks:
       - pipeline-net
     restart: unless-stopped
-
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     environment:
@@ -112,9 +106,10 @@ services:
       interval: 10s
       retries: 5
       start_period: 20s
-
   superset:
-    image: apache/superset:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.superset
     environment:
       - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY}
     ports:
@@ -127,13 +122,11 @@ services:
     depends_on:
       clickhouse:
         condition: service_healthy
-
 volumes:
   postgres_data:
   grafana_data:
   clickhouse_data:
   superset_data:
-
 networks:
   pipeline-net:
     driver: bridge
